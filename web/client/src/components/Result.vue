@@ -1,7 +1,11 @@
 <script setup>
-import { ref, computed } from "vue";
-
+import { ref, computed, onMounted } from "vue";
 import Video from "./Video.vue";
+
+// import dotenv from 'dotenv';
+import OpenAI from "openai";
+
+// dotenv.config();
 
 const { data } = defineProps(["data"]);
 const summaryData = computed(() => {
@@ -33,12 +37,55 @@ const jumpToVideoLocation = (second) => {
     selectedDisplay.value = "video";
     videoStart.value = second;
 };
+
+// ChatGPT
+
+const chatGptMessage = ref("");
+const callChatGPT = async (summaryData) => {
+    const openai = new OpenAI({
+      apiKey: `${import.meta.env.VITE_OPENAI_API_KEY}`,
+      dangerouslyAllowBrowser: true,
+    })
+
+    const prompt = `I have analyzed the video and found ${summaryData.totalInString}. Here are the details:`;
+    const errors = Object.entries(summaryData.details).map(
+        ([error, total]) => `${error}: ${total}`
+    );
+
+    console.log('prompt :');
+    console.log(`${prompt}\n${errors.join("\n")}`);
+
+  const response = await openai.chat.completions.create({
+    messages: [
+      {
+        role: 'user',
+        content: `${prompt}\n${errors.join("\n")}`,
+        // content: `can you explain your self?`,
+      },
+    ],
+    model: 'gpt-3.5-turbo',
+  })
+  chatGptMessage.value = response.choices[0].message.content;
+  console.log('chatgpt result : response.choices[0].message.content', response.choices[0].message.content)
+
+};
+
+onMounted(async () => {
+    await callChatGPT(summaryData.value);
+});
+
 </script>
 
 <template>
     <section class="result-section">
         <!-- Navigators -->
         <ul class="tab-links">
+            <li
+                :class="{ active: selectedDisplay == 'chatgpt' }"
+                @click="() => (selectedDisplay = 'chatgpt')"
+            >
+                ChatGPT
+            </li>
             <li
                 :class="{ active: selectedDisplay == 'summary' }"
                 @click="() => (selectedDisplay = 'summary')"
@@ -61,6 +108,15 @@ const jumpToVideoLocation = (second) => {
 
         <!-- Contents -->
         <div class="tab-container">
+            <!-- ChatGPT content -->
+            <template v-if="selectedDisplay == 'chatgpt'">
+                <p class="main">
+                    <span class="info-color>">
+                      AI's comment: {{ chatGptMessage }}
+                    </span>
+                </p>
+            </template>
+
             <!-- Summary content -->
             <template v-if="selectedDisplay == 'summary'">
                 <!-- Display Counter or other information -->

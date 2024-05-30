@@ -57,10 +57,10 @@ def calculate_distance(pointX: list, pointY: list) -> float:
         float: _description_
     """
 
-    x1, y1 = pointX
-    x2, y2 = pointY
+    x1, y1, z1 = pointX
+    x2, y2, z2 = pointY
 
-    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2)
 
 
 def extract_important_keypoints(results, important_landmarks: list) -> list:

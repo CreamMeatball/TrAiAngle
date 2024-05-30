@@ -252,7 +252,7 @@ class BicepCurlDetection:
 
     # LOOSE UPPER ARM error detection
     LOOSE_UPPER_ARM = False
-    LOOSE_UPPER_ARM_ANGLE_THRESHOLD = 40
+    LOOSE_UPPER_ARM_ANGLE_THRESHOLD = 55
 
     # STANDING POSTURE error detection
     POSTURE_ERROR_THRESHOLD = 0.95

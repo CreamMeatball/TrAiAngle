@@ -81,12 +81,12 @@ This is an example of how you may give instructions on setting up the project lo
    npm run install:all
    ```
 
-7. Create a directory for the resulting files to be stored.
+~~7. Create a directory for the resulting files to be stored.~~
 
-   Create a folder
+   ~~Create a folder~~
    
-   - media : root/web/server/static/media
-   - images : root/web/server/static/images
+   ~~- media : root/web/server/static/media~~
+   ~~- images : root/web/server/static/images~~
   
 8. Migration
 

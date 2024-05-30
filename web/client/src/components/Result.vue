@@ -129,7 +129,7 @@ const jumpToVideoLocation = (second) => {
                         <Video
                             :video-name="data.file_name"
                             :start-at="videoStart"
-                        ></Video>
+                        />
                     </div>
                 </template>
             </KeepAlive>

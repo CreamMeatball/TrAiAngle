@@ -125,7 +125,7 @@ class BicepPoseAnalysis:
         shoulder_projection = [
             self.shoulder[0],
             1,
-            -0.5,
+            self.shoulder[2],
         ]  # Represent the projection of the shoulder to the X axis
         ground_upper_arm_angle = int(
             calculate_angle(self.elbow, self.shoulder, shoulder_projection)

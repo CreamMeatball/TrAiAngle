@@ -66,22 +66,23 @@ This is an example of how you may give instructions on setting up the project lo
    
    NPM : 10.2.4
 
-4. Install all project dependencies
+3. Install all project dependencies
 
     ```bash
     pip install -r requirements.txt
     ```
     Certain libraries must use the same version as specified in requirements.txt.
 
-5. Move to 'web' directory by using command 'cd web' from root directory.
+4. Move to 'web' directory by using command 'cd web' from root directory.
 
-6. In 'web' directory, install Tools for Web Frontend
+5. In 'web' directory, install Tools for Web Frontend
 
    ```
    npm run install:all
    ```
 
-7. If you don't have the directory, /media and /images, in root/web/server,
+6. If you don't have the directory, /media and /images, in root/web/server,
+
    Create a directory for the resulting files to be stored.
 
    Create a folder
@@ -89,7 +90,7 @@ This is an example of how you may give instructions on setting up the project lo
    - media : root/web/server/static/media
    - images : root/web/server/static/images
   
-8. Migration
+7. Migration
 
    In directory, 'root/web/server/',
    
@@ -99,7 +100,7 @@ This is an example of how you may give instructions on setting up the project lo
    python manage.py migrate
    ```
 
-9. Finally, run server and access the web.
+8. Finally, run server and access the web.
 
    In directory, 'root/web',
    

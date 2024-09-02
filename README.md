@@ -51,7 +51,7 @@ This is an example of how you may give instructions on setting up the project lo
 1. Clone the repo and change directory to that folder
 
     ```sh
-    git clone https://github.com/CreamMeatball/AI_SportFeedback.git
+    git clone https://github.com/CreamMeatball/TrAiAngle.git
     ```
 
 2. Create the Virtual Environment with Python 3.9.19 version.

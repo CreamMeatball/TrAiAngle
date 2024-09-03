@@ -54,6 +54,7 @@ This is an example of how you may give instructions on setting up the project lo
     git clone https://github.com/CreamMeatball/TrAiAngle.git
     ```
 
+
 2. Create the Virtual Environment with Python 3.9.19 version.
 
    I create the Virtual Environment by using IDE PyCharm.
@@ -66,6 +67,7 @@ This is an example of how you may give instructions on setting up the project lo
    
    NPM : 10.2.4
 
+
 3. Install all project dependencies
 
     ```bash
@@ -73,13 +75,16 @@ This is an example of how you may give instructions on setting up the project lo
     ```
     Certain libraries must use the same version as specified in requirements.txt.
 
+
 4. Move to 'web' directory by using command 'cd web' from root directory.
+
 
 5. In 'web' directory, install Tools for Web Frontend
 
    ```
    npm run install:all
    ```
+
 
 6. If you don't have the directory, /media and /images, in root/web/server,
 
@@ -89,8 +94,22 @@ This is an example of how you may give instructions on setting up the project lo
    
    - media : root/web/server/static/media
    - images : root/web/server/static/images
-  
-7. Migration
+
+
+7. Create .env file.
+
+   Create .env file for using OpenAI API (ChatGPT).
+
+   The .env file should be located in 'root/web/client/.env'.
+
+   Detail of .env file is below.
+
+   ```
+   VITE_OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY'
+   ```
+   
+
+8. Migration
 
    In directory, 'root/web/server/',
    
@@ -100,7 +119,8 @@ This is an example of how you may give instructions on setting up the project lo
    python manage.py migrate
    ```
 
-8. Finally, run server and access the web.
+
+9. Finally, run server and access the web.
 
    In directory, 'root/web',
    

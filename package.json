@@ -11,12 +11,12 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/NgoQuocBao1010/Exercise-Correction.git"
+        "url": "https://github.com/CreamMeatball/TrAiAngle.git"
     },
     "author": "",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/NgoQuocBao1010/Exercise-Correction/issues"
+        "url": "https://github.com/CreamMeatball/TrAiAngle/pulls"
     },
-    "homepage": "https://github.com/NgoQuocBao1010/Exercise-Correction#readme"
+    "homepage": "https://github.com/CreamMeatball/TrAiAngle"
 }

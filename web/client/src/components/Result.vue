@@ -37,11 +37,11 @@ const jumpToVideoLocation = (second) => {
 
 // ChatGPT
 const chatGptMessage = ref("Before Loaded");
-const APIKEY = import.meta.env.VITE_OPENAI_API_KEY;
-console.log('APIKEY :', APIKEY);
+// const APIKEY = import.meta.env.VITE_OPENAI_API_KEY;
+// console.log('APIKEY :', APIKEY);
 const callChatGPT = async (summaryData) => {
     const openai = new OpenAI({
-      apiKey: APIKEY,
+      apiKey: import.meta.env.VITE_OPENAI_API_KEY,
       dangerouslyAllowBrowser: true,
     })
     const prompt = `I have analyzed the video and found ${summaryData.totalInString}. Here are the details:`;
@@ -51,17 +51,21 @@ const callChatGPT = async (summaryData) => {
     console.log('prompt :', prompt);
     // console.log(`${prompt}\n${errors.join("\n")}`);
   const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
     messages: [
+      {
+        role: 'system',
+        content: 'You are a helpful fitness trainer. Detailed description friendly.',
+      },
       {
         role: 'user',
         // content: `${prompt}\n${errors.join("\n")}`,
         content: prompt,
       },
-    ],
-    model: 'gpt-3.5-turbo',
+    ]
   })
   chatGptMessage.value = response.choices[0].message.content;
-  console.log('chatgpt result : response.choices[0].message.content', response.choices[0].message.content)
+  console.log('chatgpt result : response.choices[0].message', response.choices[0].message)
 };
 onMounted(async () => {
     await callChatGPT(summaryData.value);

@@ -13,7 +13,21 @@ watch(
     () => uploadedVideoFile.value,
     (newData, oldData) => {
         if (newData) {
+            console.log('Uploaded Video File: ', newData);
             emit("fileUploaded", newData);
+        }
+    }
+);
+
+const props = defineProps({
+    externalFile: File,
+});
+
+watch(
+    () => props.externalFile,
+    (newFile) => {
+        if (newFile) {
+            uploadedVideoFile.value = newFile;
         }
     }
 );

@@ -4,6 +4,8 @@ import OpenAI from "openai";
 
 import Video from "./Video.vue";
 
+import DOMPurify from 'dompurify';
+
 const { data } = defineProps(["data"]);
 const summaryData = computed(() => {
     let results = {
@@ -20,9 +22,11 @@ const summaryData = computed(() => {
 
     data.details.forEach((error) => {
         let stage = error.stage;
-        results.details[stage] = results.details[stage]
-            ? results.details[stage] + 1
-            : 1;
+        if (!results.details[stage]) {
+            results.details[stage] = { total: 0, timestamps: [] };
+        }
+        results.details[stage].total += 1;
+        results.details[stage].timestamps.push(error.timestamp);
     });
 
     return results;
@@ -41,32 +45,82 @@ const chatGptMessage = ref("Before Loaded");
 // console.log('APIKEY :', APIKEY);
 const callChatGPT = async (summaryData) => {
     const openai = new OpenAI({
-      apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-      dangerouslyAllowBrowser: true,
-    })
-    const prompt = `I have analyzed the video and found ${summaryData.totalInString}. Here are the details:`;
+        apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+        dangerouslyAllowBrowser: true,
+    });
     const errors = Object.entries(summaryData.details).map(
-        ([error, total]) => `${error}: ${total}`
+        ([error, info]) =>
+            `${error}: ${info.total} times at timestamps: ${info.timestamps.join(", ")}`
     );
-    console.log('prompt :', prompt);
-    // console.log(`${prompt}\n${errors.join("\n")}`);
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a helpful fitness trainer. Detailed description friendly.',
-      },
-      {
-        role: 'user',
-        // content: `${prompt}\n${errors.join("\n")}`,
-        content: prompt,
-      },
-    ]
-  })
-  chatGptMessage.value = response.choices[0].message.content;
-  console.log('chatgpt result : response.choices[0].message', response.choices[0].message)
+    const prompt = `I have analyzed the video and found ${summaryData.totalInString}.
+                    Here are the details:\n${errors.join("\n")}.
+                    Tell me what wrong pose occurred at a certain time, why the wrong pose is bad, and how to fix it.
+                    Please write a pretty look using the symbol and emoji.
+                    And answer out In accordance with the format of the html(line break, space, emphasis, etc).
+                    Lastly, please add the Korean translation below`;
+
+    const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+            {
+                role: 'system',
+                content: 'You are a helpful fitness trainer. Provide detailed and friendly feedback.',
+            },
+            {
+                role: 'user',
+                content: prompt,
+            },
+        ]
+    });
+
+    const content = response.choices[0].message.content;
+
+    // Extract HTML content
+    const { bodyContent, styleContent } = extractHTMLContent(content);
+
+    // Inject style into the DOM
+    if (styleContent) {
+        const styleElement = document.createElement('style');
+        styleElement.innerHTML = styleContent;
+        document.head.appendChild(styleElement);
+    }
+
+    // Sanitize and set the body content
+    chatGptMessage.value = DOMPurify.sanitize(bodyContent);
 };
+
+function extractHTMLContent(text) {
+    const regex = /```html\n([\s\S]*?)```/;
+    const match = text.match(regex);
+    if (match && match[1]) {
+        const htmlContent = match[1];
+
+        // Extract <style> content
+        const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/i;
+        const styleMatch = htmlContent.match(styleRegex);
+        let styleContent = '';
+        if (styleMatch && styleMatch[1]) {
+            styleContent = styleMatch[1];
+        }
+
+        // Extract <body> content
+        const bodyRegex = /<body[^>]*>([\s\S]*?)<\/body>/i;
+        const bodyMatch = htmlContent.match(bodyRegex);
+        let bodyContent = '';
+        if (bodyMatch && bodyMatch[1]) {
+            bodyContent = bodyMatch[1];
+        } else {
+            // If no <body> tag, remove <style> and use the remaining content
+            bodyContent = htmlContent.replace(styleRegex, '');
+        }
+
+        return { bodyContent, styleContent };
+    } else {
+        // If no HTML code block, return the original text
+        return { bodyContent: text, styleContent: '' };
+    }
+}
+
 onMounted(async () => {
     await callChatGPT(summaryData.value);
 });
@@ -108,11 +162,8 @@ onMounted(async () => {
         <div class="tab-container">
             <!-- ChatGPT content -->
             <template v-if="selectedDisplay == 'chatgpt'">
-                <p class="main">
-                    <span class="info-color>">
-                      AI's comment: {{ chatGptMessage }}
-                    </span>
-                </p>
+                <div class="chatgpt-message" v-html="chatGptMessage">
+                </div>
             </template>
 
             <!-- Summary content -->
@@ -285,6 +336,15 @@ onMounted(async () => {
 
     .info-color {
         color: rgb(55, 194, 55);
+    }
+
+    .chatgpt-message {
+          /* You can add styles here to style the chatgpt-message container */
+          padding: 1rem;
+          background-color: #f9f9f9;
+          border: 1px solid var(--primary-color);
+          border-radius: 8px;
+          margin: 1rem 0;
     }
 }
 </style>

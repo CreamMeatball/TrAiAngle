@@ -9,6 +9,7 @@ import DOMPurify from 'dompurify';
 const { data } = defineProps(["data"]);
 const summaryData = computed(() => {
     let results = {
+        type: data.type,
         total: 0,
         totalInString: "",
         details: {},
@@ -53,18 +54,32 @@ const callChatGPT = async (summaryData) => {
             `${error}: ${info.total} times at timestamps: ${info.timestamps.join(", ")}`
     );
     const prompt = `I have analyzed the video and found ${summaryData.totalInString}.
+                    The video is an analysis after doing ${summaryData.type} exercise.
                     Here are the details:\n${errors.join("\n")}.
                     Tell me what wrong pose occurred at a certain time, why the wrong pose is bad, and how to fix it.
-                    Please write a pretty look using the symbol and emoji.
-                    And answer out In accordance with the format of the html(line break, space, emphasis, etc).
-                    Lastly, please add the Korean translation below`;
+                    Please write a pretty look using the symbol and emoji,
+                    Please print out each sentence by adding one sentence translated into Korean right below.
+
+                    Please provide feedback on each error in the following JSON format:
+
+                    [
+                      {
+                        "error": "Error description",
+                        "timestamp": "Timestamp",
+                        "issue": "Explanation of the issue",
+                        "why_bad": "Why it's bad",
+                        "fix": "How to fix it"
+                      },
+                      ...
+                    ]
+                    `;
 
     const response = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
             {
                 role: 'system',
-                content: 'You are a helpful fitness trainer. Provide detailed and friendly feedback.',
+                content: `You are a helpful ${summaryData.type} fitness trainer. Provide detailed and friendly feedback.`,
             },
             {
                 role: 'user',
@@ -73,20 +88,39 @@ const callChatGPT = async (summaryData) => {
         ]
     });
 
-    const content = response.choices[0].message.content;
+    const content = response.choices[0].message.content
 
-    // Extract HTML content
-    const { bodyContent, styleContent } = extractHTMLContent(content);
+    // // Extract HTML content
+    // const { bodyContent, styleContent } = extractHTMLContent(content);
+    //
+    // const sanitizedContent = DOMPurify.sanitize(bodyContent);
+    //
+    // const messages = parseChatGPTResponse(sanitizedContent);
+    //
+    // // Inject style into the DOM
+    // if (styleContent) {
+    //     const styleElement = document.createElement('style');
+    //     styleElement.innerHTML = styleContent;
+    //     document.head.appendChild(styleElement);
+    // }
 
-    // Inject style into the DOM
-    if (styleContent) {
-        const styleElement = document.createElement('style');
-        styleElement.innerHTML = styleContent;
-        document.head.appendChild(styleElement);
+    // JSON 파싱 시도
+    let messages = [];
+    try {
+        // 응답에서 JSON 부분 추출
+        const jsonStartIndex = content.indexOf('[');
+        const jsonEndIndex = content.lastIndexOf(']');
+        const jsonString = content.substring(jsonStartIndex, jsonEndIndex + 1);
+
+        messages = JSON.parse(jsonString);
+    } catch (error) {
+        console.error('ChatGPT 응답에서 JSON 파싱 실패:', error);
+        console.error('응답 내용:', content);
+        messages = [];
     }
 
     // Sanitize and set the body content
-    chatGptMessage.value = DOMPurify.sanitize(bodyContent);
+    chatGptMessage.value = messages;
 };
 
 function extractHTMLContent(text) {
@@ -121,6 +155,11 @@ function extractHTMLContent(text) {
     }
 }
 
+function parseChatGPTResponse(content) {
+  const items = content.split(/\n(?=\d+\.\s)/g);
+  return items.map(item => item.trim()).filter(item => item.length > 0);
+}
+
 onMounted(async () => {
     await callChatGPT(summaryData.value);
 });
@@ -136,7 +175,7 @@ onMounted(async () => {
                 :class="{ active: selectedDisplay == 'chatgpt' }"
                 @click="() => (selectedDisplay = 'chatgpt')"
             >
-                ChatGPT
+                AI's Feedback
             </li>
             <li
                 :class="{ active: selectedDisplay == 'summary' }"
@@ -162,7 +201,17 @@ onMounted(async () => {
         <div class="tab-container">
             <!-- ChatGPT content -->
             <template v-if="selectedDisplay == 'chatgpt'">
-                <div class="chatgpt-message" v-html="chatGptMessage">
+                <div class="chatgpt-messages">
+                    <div
+                        class="chatgpt-message"
+                        v-for="(message, index) in chatGptMessage"
+                        :key="index"
+                    >
+                        <h3>{{ index + 1 }}. {{ message.error }} (Timestamp: {{ message.timestamp }})</h3>
+                        <p><strong>Issue:</strong> {{ message.issue }}</p>
+                        <p><strong>Why It's Bad:</strong> {{ message.why_bad }}</p>
+                        <p><strong>Fix:</strong> {{ message.fix }}</p>
+                    </div>
                 </div>
             </template>
 
@@ -223,6 +272,11 @@ onMounted(async () => {
                         </p>
                         <img :src="`${error.frame}`" />
                         <hr />
+                        <div v-if="chatGptMessage && chatGptMessage.length > index">
+                            <p><strong>Issue:</strong> {{ chatGptMessage[index].issue }}</p>
+                            <p><strong>Why It's Bad:</strong> {{ chatGptMessage[index].why_bad }}</p>
+                            <p><strong>Fix:</strong> {{ chatGptMessage[index].fix }}</p>
+                        </div>
                     </div>
                 </template>
             </KeepAlive>
@@ -338,13 +392,17 @@ onMounted(async () => {
         color: rgb(55, 194, 55);
     }
 
+    .chatgpt-messages {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
     .chatgpt-message {
-          /* You can add styles here to style the chatgpt-message container */
-          padding: 1rem;
-          background-color: #f9f9f9;
-          border: 1px solid var(--primary-color);
-          border-radius: 8px;
-          margin: 1rem 0;
+        padding: 1rem;
+        background-color: #f9f9f9;
+        border: 1px solid var(--primary-color);
+        border-radius: 8px;
     }
 }
 </style>

@@ -58,17 +58,16 @@ const callChatGPT = async (summaryData) => {
                     Here are the details:\n${errors.join("\n")}.
                     Tell me what wrong pose occurred at a certain time, why the wrong pose is bad, and how to fix it.
                     Please write a pretty look using the symbol and emoji,
-                    Please print out each sentence by adding one sentence translated into Korean right below.
 
                     Please provide feedback on each error in the following JSON format:
 
                     [
                       {
-                        "error": "Error description",
+                        "error": "Error description in English, (line break) Error description in Korean",
                         "timestamp": "Timestamp",
-                        "issue": "Explanation of the issue",
-                        "why_bad": "Why it's bad",
-                        "fix": "How to fix it"
+                        "issue": "Explanation of the issue in English, (line break) Explanation of the issue in Korean",
+                        "why_bad": "Why it's bad explanation in English, (line break) Why it's bad explanation in Korean",
+                        "fix": "How to fix it explanation in English, (line break) How to fix it explanation in Korean"
                       },
                       ...
                     ]
@@ -89,6 +88,7 @@ const callChatGPT = async (summaryData) => {
     });
 
     const content = response.choices[0].message.content
+    console.log(content)
 
     // // Extract HTML content
     // const { bodyContent, styleContent } = extractHTMLContent(content);
@@ -123,42 +123,42 @@ const callChatGPT = async (summaryData) => {
     chatGptMessage.value = messages;
 };
 
-function extractHTMLContent(text) {
-    const regex = /```html\n([\s\S]*?)```/;
-    const match = text.match(regex);
-    if (match && match[1]) {
-        const htmlContent = match[1];
+// function extractHTMLContent(text) {
+//     const regex = /```html\n([\s\S]*?)```/;
+//     const match = text.match(regex);
+//     if (match && match[1]) {
+//         const htmlContent = match[1];
+//
+//         // Extract <style> content
+//         const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/i;
+//         const styleMatch = htmlContent.match(styleRegex);
+//         let styleContent = '';
+//         if (styleMatch && styleMatch[1]) {
+//             styleContent = styleMatch[1];
+//         }
+//
+//         // Extract <body> content
+//         const bodyRegex = /<body[^>]*>([\s\S]*?)<\/body>/i;
+//         const bodyMatch = htmlContent.match(bodyRegex);
+//         let bodyContent = '';
+//         if (bodyMatch && bodyMatch[1]) {
+//             bodyContent = bodyMatch[1];
+//         } else {
+//             // If no <body> tag, remove <style> and use the remaining content
+//             bodyContent = htmlContent.replace(styleRegex, '');
+//         }
+//
+//         return { bodyContent, styleContent };
+//     } else {
+//         // If no HTML code block, return the original text
+//         return { bodyContent: text, styleContent: '' };
+//     }
+// }
 
-        // Extract <style> content
-        const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/i;
-        const styleMatch = htmlContent.match(styleRegex);
-        let styleContent = '';
-        if (styleMatch && styleMatch[1]) {
-            styleContent = styleMatch[1];
-        }
-
-        // Extract <body> content
-        const bodyRegex = /<body[^>]*>([\s\S]*?)<\/body>/i;
-        const bodyMatch = htmlContent.match(bodyRegex);
-        let bodyContent = '';
-        if (bodyMatch && bodyMatch[1]) {
-            bodyContent = bodyMatch[1];
-        } else {
-            // If no <body> tag, remove <style> and use the remaining content
-            bodyContent = htmlContent.replace(styleRegex, '');
-        }
-
-        return { bodyContent, styleContent };
-    } else {
-        // If no HTML code block, return the original text
-        return { bodyContent: text, styleContent: '' };
-    }
-}
-
-function parseChatGPTResponse(content) {
-  const items = content.split(/\n(?=\d+\.\s)/g);
-  return items.map(item => item.trim()).filter(item => item.length > 0);
-}
+// function parseChatGPTResponse(content) {
+//   const items = content.split(/\n(?=\d+\.\s)/g);
+//   return items.map(item => item.trim()).filter(item => item.length > 0);
+// }
 
 onMounted(async () => {
     await callChatGPT(summaryData.value);
@@ -207,10 +207,10 @@ onMounted(async () => {
                         v-for="(message, index) in chatGptMessage"
                         :key="index"
                     >
-                        <h3>{{ index + 1 }}. {{ message.error }} (Timestamp: {{ message.timestamp }})</h3>
-                        <p><strong>Issue:</strong> {{ message.issue }}</p>
-                        <p><strong>Why It's Bad:</strong> {{ message.why_bad }}</p>
-                        <p><strong>Fix:</strong> {{ message.fix }}</p>
+                        <h3><b>{{ index + 1 }}. {{ message.error }} (🕗 Timestamp: {{ message.timestamp }})</b></h3>
+                        <p><b>❗️ Issue:</b> {{ message.issue }}</p>
+                        <p><b>🤔 Why It's Bad:</b> {{ message.why_bad }}</p>
+                        <p><b>✅ Fix:</b> {{ message.fix }}</p>
                     </div>
                 </div>
             </template>
@@ -262,20 +262,20 @@ onMounted(async () => {
                         v-for="(error, index) in data.details"
                     >
                         <p>
-                            {{ index + 1 }}. {{ error.stage }} at
+                          <b> {{ index + 1 }}. {{ error.stage }} at
                             <span
                                 class="error-time"
                                 @click="jumpToVideoLocation(error.timestamp)"
                             >
-                                {{ error.timestamp }} second
-                            </span>
+                                🕗 {{ error.timestamp }} second
+                            </span> </b>
                         </p>
                         <img :src="`${error.frame}`" />
                         <hr />
                         <div v-if="chatGptMessage && chatGptMessage.length > index">
-                            <p><strong>Issue:</strong> {{ chatGptMessage[index].issue }}</p>
-                            <p><strong>Why It's Bad:</strong> {{ chatGptMessage[index].why_bad }}</p>
-                            <p><strong>Fix:</strong> {{ chatGptMessage[index].fix }}</p>
+                            <p><b>❗️ Issue:</b> {{ chatGptMessage[index].issue }}</p>
+                            <p><b>🤔 Why It's Bad:</b> {{ chatGptMessage[index].why_bad }}</p>
+                            <p><b>✅ Fix:</b> {{ chatGptMessage[index].fix }}</p>
                         </div>
                     </div>
                 </template>

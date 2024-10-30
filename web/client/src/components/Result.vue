@@ -44,7 +44,10 @@ const jumpToVideoLocation = (second) => {
 const chatGptMessage = ref("Before Loaded");
 // const APIKEY = import.meta.env.VITE_OPENAI_API_KEY;
 // console.log('APIKEY :', APIKEY);
+
+const loading = ref(true);
 const callChatGPT = async (summaryData) => {
+    loading.value = true;
     const openai = new OpenAI({
         apiKey: import.meta.env.VITE_OPENAI_API_KEY,
         dangerouslyAllowBrowser: true,
@@ -121,6 +124,7 @@ const callChatGPT = async (summaryData) => {
 
     // Sanitize and set the body content
     chatGptMessage.value = messages;
+    loading.value = false;
 };
 
 // function extractHTMLContent(text) {
@@ -202,15 +206,20 @@ onMounted(async () => {
             <!-- ChatGPT content -->
             <template v-if="selectedDisplay == 'chatgpt'">
                 <div class="chatgpt-messages">
-                    <div
-                        class="chatgpt-message"
-                        v-for="(message, index) in chatGptMessage"
-                        :key="index"
-                    >
-                        <h3><b>{{ index + 1 }}. {{ message.error }} (🕗 Timestamp: {{ message.timestamp }})</b></h3>
-                        <p><b>❗️ Issue:</b> {{ message.issue }}</p>
-                        <p><b>🤔 Why It's Bad:</b> {{ message.why_bad }}</p>
-                        <p><b>✅ Fix:</b> {{ message.fix }}</p>
+                    <div v-if="loading" class="chatgpt-message">
+                        Before Loaded
+                    </div>
+                    <div v-else>
+                        <div
+                            class="chatgpt-message"
+                            v-for="(message, index) in chatGptMessage"
+                            :key="index"
+                        >
+                            <h3><b>{{ index + 1 }}. {{ message.error }} (🕗 Timestamp: {{ message.timestamp }})</b></h3>
+                            <p><b>❗️ Issue:</b> {{ message.issue }}</p>
+                            <p><b>🤔 Why It's Bad:</b> {{ message.why_bad }}</p>
+                            <p><b>✅ Fix:</b> {{ message.fix }}</p>
+                        </div>
                     </div>
                 </div>
             </template>
@@ -257,25 +266,30 @@ onMounted(async () => {
             <!-- Detail Content -->
             <KeepAlive>
                 <template v-if="selectedDisplay == 'detail'">
-                    <div
-                        class="box-error"
-                        v-for="(error, index) in data.details"
-                    >
-                        <p>
-                          <b> {{ index + 1 }}. {{ error.stage }} at
-                            <span
-                                class="error-time"
-                                @click="jumpToVideoLocation(error.timestamp)"
-                            >
-                                🕗 {{ error.timestamp }} second
-                            </span> </b>
-                        </p>
-                        <img :src="`${error.frame}`" />
-                        <hr />
-                        <div v-if="chatGptMessage && chatGptMessage.length > index">
-                            <p><b>❗️ Issue:</b> {{ chatGptMessage[index].issue }}</p>
-                            <p><b>🤔 Why It's Bad:</b> {{ chatGptMessage[index].why_bad }}</p>
-                            <p><b>✅ Fix:</b> {{ chatGptMessage[index].fix }}</p>
+                    <div v-if="loading" class="chatgpt-message">
+                        Before Loaded
+                    </div>
+                    <div v-else>
+                        <div
+                            class="box-error"
+                            v-for="(error, index) in data.details"
+                        >
+                            <p>
+                              <b> {{ index + 1 }}. {{ error.stage }} at
+                                <span
+                                    class="error-time"
+                                    @click="jumpToVideoLocation(error.timestamp)"
+                                >
+                                    🕗 {{ error.timestamp }} second
+                                </span> </b>
+                            </p>
+                            <img :src="`${error.frame}`" />
+                            <hr />
+                            <div v-if="chatGptMessage && chatGptMessage.length > index">
+                                <p><b>❗️ Issue:</b> {{ chatGptMessage[index].issue }}</p>
+                                <p><b>🤔 Why It's Bad:</b> {{ chatGptMessage[index].why_bad }}</p>
+                                <p><b>✅ Fix:</b> {{ chatGptMessage[index].fix }}</p>
+                            </div>
                         </div>
                     </div>
                 </template>

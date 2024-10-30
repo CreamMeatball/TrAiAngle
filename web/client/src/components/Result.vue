@@ -47,6 +47,12 @@ const videoStart = ref(0);
 const seekVideo = (second) => {
     if (videoPlayer.value && videoPlayer.value.seekTo) {
         videoPlayer.value.seekTo(second);
+
+        // 비디오 위치로 스크롤
+        videoPlayer.value.videoContainer.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+        });
     }
 };
 
@@ -69,6 +75,7 @@ const callChatGPT = async (summaryData) => {
     const prompt = `I have analyzed the video and found ${summaryData.totalInString}.
                     The video is an analysis after doing ${summaryData.type} exercise.
                     Here are the details:\n${errors.join("\n")}.
+                    If there are multiple timestamps for an error, please divide them into each timestamp and answer each.
                     Tell me what wrong pose occurred at a certain time, why the wrong pose is bad, and how to fix it.
                     Please write a pretty look using the symbol and emoji,
 
@@ -133,6 +140,7 @@ const callChatGPT = async (summaryData) => {
     }
 
     // Sanitize and set the body content
+    messages.sort((a, b) => parseInt(a.timestamp) - parseInt(b.timestamp));
     chatGptMessage.value = messages;
     loading.value = false;
 };

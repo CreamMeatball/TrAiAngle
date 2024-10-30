@@ -40,6 +40,7 @@ const seekTo = (second) => {
 // 부모 컴포넌트에 메서드 노출
 defineExpose({
     seekTo,
+    videoContainer,
 });
 </script>
 

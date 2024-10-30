@@ -28,11 +28,24 @@ const handleVideoLoad = () => {
         block: "center",
     });
 };
+
+// 비디오 재생 위치를 변경하는 메서드
+const seekTo = (second) => {
+    if (video.value) {
+        video.value.currentTime = second;
+        video.value.play(); // 필요한 경우 재생
+    }
+};
+
+// 부모 컴포넌트에 메서드 노출
+defineExpose({
+    seekTo,
+});
 </script>
 
 <template>
     <!-- Video Player -->
-    <p>{{ url }}</p>
+<!--    <p>{{ url }}</p>-->
     <div class="player" ref="videoContainer">
         <video
             controls
@@ -42,7 +55,7 @@ const handleVideoLoad = () => {
             loop
             muted
         >
-            <source :src="`${url}`" type="video/mp4" />
+        <source :src="`${url}`" type="video/mp4" />
         </video>
     </div>
 </template>

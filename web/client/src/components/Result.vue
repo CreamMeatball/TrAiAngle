@@ -7,6 +7,9 @@ import Video from "./Video.vue";
 import DOMPurify from 'dompurify';
 
 const { data } = defineProps(["data"]);
+// Video 컴포넌트에 대한 참조 생성
+const videoPlayer = ref(null);
+
 const summaryData = computed(() => {
     let results = {
         type: data.type,
@@ -35,9 +38,16 @@ const summaryData = computed(() => {
 const selectedDisplay = ref("summary");
 const videoStart = ref(0);
 
-const jumpToVideoLocation = (second) => {
-    selectedDisplay.value = "video";
-    videoStart.value = second;
+// const jumpToVideoLocation = (second) => {
+//     // selectedDisplay.value = "video";
+//     selectedDisplay.value = "detail";
+//     videoStart.value = second;
+// };
+
+const seekVideo = (second) => {
+    if (videoPlayer.value && videoPlayer.value.seekTo) {
+        videoPlayer.value.seekTo(second);
+    }
 };
 
 // ChatGPT
@@ -175,17 +185,17 @@ onMounted(async () => {
     <section class="result-section">
         <!-- Navigators -->
         <ul class="tab-links">
-            <li
-                :class="{ active: selectedDisplay == 'chatgpt' }"
-                @click="() => (selectedDisplay = 'chatgpt')"
-            >
-                AI's Feedback
-            </li>
+<!--            <li-->
+<!--                :class="{ active: selectedDisplay == 'chatgpt' }"-->
+<!--                @click="() => (selectedDisplay = 'chatgpt')"-->
+<!--            >-->
+<!--                AI's Feedback-->
+<!--            </li>-->
             <li
                 :class="{ active: selectedDisplay == 'summary' }"
                 @click="() => (selectedDisplay = 'summary')"
             >
-                Summary
+                AI Summary
             </li>
             <li
                 :class="{ active: selectedDisplay == 'detail' }"
@@ -193,36 +203,36 @@ onMounted(async () => {
             >
                 Detail
             </li>
-            <li
-                :class="{ active: selectedDisplay == 'video' }"
-                @click="() => (selectedDisplay = 'video')"
-            >
-                Full Video
-            </li>
+<!--            <li-->
+<!--                :class="{ active: selectedDisplay == 'video' }"-->
+<!--                @click="() => (selectedDisplay = 'video')"-->
+<!--            >-->
+<!--                Full Video-->
+<!--            </li>-->
         </ul>
 
         <!-- Contents -->
         <div class="tab-container">
             <!-- ChatGPT content -->
-            <template v-if="selectedDisplay == 'chatgpt'">
-                <div class="chatgpt-messages">
-                    <div v-if="loading" class="chatgpt-message">
-                        Before Loaded
-                    </div>
-                    <div v-else>
-                        <div
-                            class="chatgpt-message"
-                            v-for="(message, index) in chatGptMessage"
-                            :key="index"
-                        >
-                            <h3><b>{{ index + 1 }}. {{ message.error }} (🕗 Timestamp: {{ message.timestamp }})</b></h3>
-                            <p><b>❗️ Issue:</b> {{ message.issue }}</p>
-                            <p><b>🤔 Why It's Bad:</b> {{ message.why_bad }}</p>
-                            <p><b>✅ Fix:</b> {{ message.fix }}</p>
-                        </div>
-                    </div>
-                </div>
-            </template>
+<!--            <template v-if="selectedDisplay == 'chatgpt'">-->
+<!--                <div class="chatgpt-messages">-->
+<!--                    <div v-if="loading" class="chatgpt-message">-->
+<!--                        Before Loaded-->
+<!--                    </div>-->
+<!--                    <div v-else>-->
+<!--                        <div-->
+<!--                            class="chatgpt-message"-->
+<!--                            v-for="(message, index) in chatGptMessage"-->
+<!--                            :key="index"-->
+<!--                        >-->
+<!--                            <h3><b>{{ index + 1 }}. {{ message.error }} (🕗 Timestamp: {{ message.timestamp }})</b></h3>-->
+<!--                            <p><b>❗️ Issue:</b> {{ message.issue }}</p>-->
+<!--                            <p><b>🤔 Why It's Bad:</b> {{ message.why_bad }}</p>-->
+<!--                            <p><b>✅ Fix:</b> {{ message.fix }}</p>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </template>-->
 
             <!-- Summary content -->
             <template v-if="selectedDisplay == 'summary'">
@@ -255,17 +265,42 @@ onMounted(async () => {
                 </p>
 
                 <ul class="errors" v-if="summaryData.total > 0">
-                    <li v-for="(total, error) in summaryData.details">
+                    <li v-for="(detail, error) in summaryData.details">
                         <i class="fa-solid fa-caret-right"></i>
 
-                        {{ error }}: {{ total }}
+                        {{ error }}: {{ detail.total }} <span v-if="detail.total < 2">time</span><span v-else>times</span>
                     </li>
                 </ul>
+
+                <div class="chatgpt-messages">
+                    <div v-if="loading" class="chatgpt-message">
+                        Before Loaded
+                    </div>
+                    <div v-else>
+                        <div
+                            class="chatgpt-message"
+                            v-for="(message, index) in chatGptMessage"
+                            :key="index"
+                        >
+                            <h3><b>{{ index + 1 }}. {{ message.error }} (🕗 Timestamp: {{ message.timestamp }})</b></h3>
+                            <p><b>❗️ Issue:</b> {{ message.issue }}</p>
+<!--                            <p><b>🤔 Why It's Bad:</b> {{ message.why_bad }}</p>-->
+                            <p><b>✅ Fix:</b> {{ message.fix }}</p>
+                        </div>
+                    </div>
+                </div>
             </template>
 
             <!-- Detail Content -->
             <KeepAlive>
                 <template v-if="selectedDisplay == 'detail'">
+                    <div class="video-container">
+                        <Video
+                            :video-name="data.file_name"
+                            :start-at="videoStart"
+                            ref="videoPlayer"
+                        />
+                    </div>
                     <div v-if="loading" class="chatgpt-message">
                         Before Loaded
                     </div>
@@ -278,12 +313,12 @@ onMounted(async () => {
                               <b> {{ index + 1 }}. {{ error.stage }} at
                                 <span
                                     class="error-time"
-                                    @click="jumpToVideoLocation(error.timestamp)"
+                                    @click="seekVideo(error.timestamp)"
                                 >
                                     🕗 {{ error.timestamp }} second
                                 </span> </b>
                             </p>
-                            <img :src="`${error.frame}`" />
+                            <img :src="`${error.frame}`" style="display:block; margin:auto;"/>
                             <hr />
                             <div v-if="chatGptMessage && chatGptMessage.length > index">
                                 <p><b>❗️ Issue:</b> {{ chatGptMessage[index].issue }}</p>
@@ -296,16 +331,16 @@ onMounted(async () => {
             </KeepAlive>
 
             <!-- Full Video content -->
-            <KeepAlive>
-                <template v-if="selectedDisplay == 'video'">
-                    <div class="video-container">
-                        <Video
-                            :video-name="data.file_name"
-                            :start-at="videoStart"
-                        />
-                    </div>
-                </template>
-            </KeepAlive>
+<!--            <KeepAlive>-->
+<!--                <template v-if="selectedDisplay == 'video'">-->
+<!--                    <div class="video-container">-->
+<!--                        <Video-->
+<!--                            :video-name="data.file_name"-->
+<!--                            :start-at="videoStart"-->
+<!--                        />-->
+<!--                    </div>-->
+<!--                </template>-->
+<!--            </KeepAlive>-->
         </div>
     </section>
 </template>

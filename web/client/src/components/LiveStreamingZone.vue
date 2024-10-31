@@ -75,10 +75,10 @@ onUnmounted(() => {
             <video ref="camera" class="flipped"></video>
         </div>
 
-        <button @click="isRecording ? stopRecording() : startRecording()">
-            {{ isRecording ? "Stop Recording" : "Start Recording" }}
+        <button @click="isRecording ? stopRecording() : startRecording()" class="recordButton">
+            {{ isRecording ? "🟥 Stop Recording" : "🔴 Start Recording" }}
         </button>
-        <button @click="saveRecording" :disabled="isRecording">Save Recording</button>
+        <button @click="saveRecording" :disabled="isRecording" class="recordButton">✅ Save Recording</button>
     </div>
 </template>
 
@@ -92,11 +92,14 @@ onUnmounted(() => {
     gap: 2rem;
 
     &__wrapper {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
         width: 100%;
         overflow: hidden;
 
         video {
-            width: 100%;
+            width: 80%;
             height: auto;
         }
     }
@@ -104,5 +107,32 @@ onUnmounted(() => {
 
 .flipped {
     transform: scaleX(-1); /* Flip the video horizontally */
+}
+
+.recordButton {
+    display: flex;
+    width: 50%;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem 0;
+    flex: 45%;
+    background-color: whitesmoke;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    border: 3px solid var(--primary-color);
+    border-radius: 0.3rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    &:hover {
+      box-shadow: 0 6px 18px 0 rgba(#000, 0.1);
+      transform: translateY(-6px);
+    }
+
+    &.active {
+      background-color: var(--primary-color);
+      color: whitesmoke;
+      font-weight: 700;
+    }
 }
 </style>

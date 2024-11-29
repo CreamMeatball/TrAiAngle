@@ -10,7 +10,7 @@
   <h2 align="center">TrAiAngle</h2>
 
   <p align="center">
-    Web service that uses Google's Mediapipe to determine whether home training movement is right or wrong and provide feedback on it.
+    AI Home Fitness Feedback service using Google's Mediapipe<br>Determine whether home training movement is right or wrong and provide feedback on it
   </p>
 </div>
 
